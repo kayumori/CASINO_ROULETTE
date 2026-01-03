@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ルーレット休憩タイマー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            background: #0a0e27;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background: linear-gradient(145deg, #1a1f3a, #0f1229);
+            border-radius: 30px;
+            padding: 50px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 2px solid #2a3150;
+        }
+        
+        h1 {
+            color: #d4af37;
+            margin-bottom: 40px;
+            font-size: 32px;
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.5);
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        
+        .roulette-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto 40px;
+        }
+        
+        .roulette {
+            width: 320px;
+            height: 320px;
+            position: relative;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #8b7355, #3d2817);
+            box-shadow: 
+                0 0 0 8px #d4af37,
+                0 0 0 12px #1a1f3a,
+                0 0 30px rgba(212, 175, 55, 0.4),
+                inset 0 5px 15px rgba(0,0,0,0.5);
+        }
+        
+        .roulette-inner {
+            width: 280px;
+            height: 280px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #1a0f0a;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 
+                inset 0 0 30px rgba(0,0,0,0.8),
+                inset 0 0 0 2px #8b7355;
+            overflow: hidden;
+        }
+        
+        .roulette-numbers {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.05s linear;
+        }
+        
+        .number-segment {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 15px;
+        }
+        
+        .number {
+            color: #d4af37;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.8);
+            background: rgba(212, 175, 55, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .center-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 56px;
+            font-weight: bold;
+            color: #d4af37;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.8);
+            z-index: 10;
+        }
+        
+        .ball {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #c0c0c0);
+            box-shadow: 
+                0 0 10px rgba(255,255,255,0.8),
+                inset -2px -2px 5px rgba(0,0,0,0.3),
+                inset 2px 2px 5px rgba(255,255,255,0.9);
+            z-index: 20;
+            display: none;
+        }
+        
+        .ball.active {
+            display: block;
+            animation: rotateBall 1s linear infinite;
+        }
+        
+        @keyframes rotateBall {
+            0% {
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(0deg) translateX(120px);
+            }
+            100% {
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(360deg) translateX(120px);
+            }
+        }
+        
+        .roulette.spinning .roulette-numbers {
+            animation: spinWheel 0.1s linear infinite;
+        }
+        
+        @keyframes spinWheel {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .btn {
+            padding: 16px 45px;
+            font-size: 18px;
+            border: 2px solid #d4af37;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            margin: 10px;
+            font-family: 'Georgia', serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(145deg, #d4af37, #b8941e);
+            color: #1a1f3a;
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.6);
+            background: linear-gradient(145deg, #e6c351, #d4af37);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: #d4af37;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+        
+        .timer-display {
+            font-size: 56px;
+            font-weight: bold;
+            color: #d4af37;
+            margin: 30px 0;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+            font-family: 'Georgia', serif;
+        }
+        
+        .status {
+            font-size: 20px;
+            color: #8b9dc3;
+            margin: 15px 0;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 CASINO ROULETTE</h1>
+        
+        <div class="roulette-container">
+            <div class="roulette" id="roulette">
+                <div class="roulette-inner">
+                    <div class="roulette-numbers" id="rouletteWheel"></div>
+                    <div class="center-display" id="centerDisplay">?</div>
+                </div>
+                <div class="ball" id="ball"></div>
+            </div>
+        </div>
+        
+        <div id="initialView">
+            <button class="btn btn-primary" id="spinBtn">Spin</button>
+        </div>
+        
+        <div id="timerView" class="hidden">
+            <div class="status">Break Time</div>
+            <div class="timer-display" id="timerDisplay">00:00</div>
+            <button class="btn btn-secondary" id="resetBtn">Reset</button>
+        </div>
+    </div>
+    
+    <script>
+        const roulette = document.getElementById('roulette');
+        const rouletteWheel = document.getElementById('rouletteWheel');
+        const centerDisplay = document.getElementById('centerDisplay');
+        const ball = document.getElementById('ball');
+        const spinBtn = document.getElementById('spinBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const initialView = document.getElementById('initialView');
+        const timerView = document.getElementById('timerView');
+        const timerDisplay = document.getElementById('timerDisplay');
+        
+        let timerInterval = null;
+        let remainingSeconds = 0;
+        
+        // ルーレット盤面の数字を生成（5-20）
+        function createRouletteWheel() {
+            const numbers = [];
+            for (let i = 5; i <= 20; i++) {
+                numbers.push(i);
+            }
+            
+            numbers.forEach((num, index) => {
+                const segment = document.createElement('div');
+                segment.className = 'number-segment';
+                segment.style.transform = `rotate(${(360 / 16) * index}deg)`;
+                
+                const numberEl = document.createElement('div');
+                numberEl.className = 'number';
+                numberEl.textContent = num;
+                
+                segment.appendChild(numberEl);
+                rouletteWheel.appendChild(segment);
+            });
+        }
+        
+        createRouletteWheel();
+        
+        // ビープ音を生成
+        function playBeep() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+        
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+        
+        function startTimer(minutes) {
+            remainingSeconds = minutes * 60;
+            timerDisplay.textContent = formatTime(remainingSeconds);
+            
+            timerInterval = setInterval(() => {
+                remainingSeconds--;
+                timerDisplay.textContent = formatTime(remainingSeconds);
+                
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    playBeep();
+                    setTimeout(() => playBeep(), 300);
+                    setTimeout(() => playBeep(), 600);
+                }
+            }, 1000);
+        }
+        
+        function spinRoulette() {
+            spinBtn.disabled = true;
+            roulette.classList.add('spinning');
+            ball.classList.add('active');
+            
+            let counter = 0;
+            let currentRotation = 0;
+            
+            const spinInterval = setInterval(() => {
+                const randomNum = Math.floor(Math.random() * 16) + 5;
+                centerDisplay.textContent = randomNum;
+                currentRotation += 36;
+                rouletteWheel.style.transform = `rotate(${currentRotation}deg)`;
+                counter++;
+                
+                if (counter >= 40) {
+                    clearInterval(spinInterval);
+                    roulette.classList.remove('spinning');
+                    
+                    // 最終結果
+                    const finalNumber = Math.floor(Math.random() * 16) + 5;
+                    centerDisplay.textContent = finalNumber;
+                    
+                    // ボールを停止
+                    setTimeout(() => {
+                        ball.classList.remove('active');
+                        
+                        setTimeout(() => {
+                            initialView.classList.add('hidden');
+                            timerView.classList.remove('hidden');
+                            startTimer(finalNumber);
+                        }, 500);
+                    }, 1000);
+                }
+            }, 80);
+        }
+        
+        function reset() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            centerDisplay.textContent = '?';
+            rouletteWheel.style.transform = 'rotate(0deg)';
+            ball.classList.remove('active');
+            spinBtn.disabled = false;
+            initialView.classList.remove('hidden');
+            timerView.classList.add('hidden');
+        }
+        
+        spinBtn.addEventListener('click', spinRoulette);
+        resetBtn.addEventListener('click', reset);
+    </script>
+</body>
+</html>
